@@ -17,16 +17,16 @@ import (
 // TODO(btracey); Something about Stationary kernels that only depend on the distance
 // r.
 
-type Distancer interface {
-	Distance(x, y []float64) float64
+type Kerneler interface {
+	Kernel(x, y []float64) float64
 }
 
-type LogDistancer interface {
-	LogDistance(x, y []float64) float64
+type LogKerneler interface {
+	LogKernel(x, y []float64) float64
 }
 
-type LogDistanceHyperer interface {
-	LogDistanceHyper(x, y, hyper []float64) float64
+type LogKernelHyperer interface {
+	LogKernelHyper(x, y, hyper []float64) float64
 }
 
 type NumHyperer interface {
@@ -37,33 +37,33 @@ type NumHyperer interface {
 
 var badNumHyper = "kernel: wrong number of hyperparameters"
 
-// LogDistanceWrapper wraps a LogDistanceHyperer with the hyperparameters fixed.
-type LogDistanceWrapper struct {
-	Hyper   []float64
-	Hyperer LogDistanceHyperer
+// LogKernelWrapper wraps a LogKernelHyperer with the hyperparameters fixed.
+type LogKernelWrapper struct {
+	Hyper       []float64
+	LogKerneler LogKernelHyperer
 }
 
-func (ld LogDistanceWrapper) LogDistance(x, y []float64) float64 {
-	return ld.Hyperer.LogDistanceHyper(x, y, ld.Hyper)
+func (ld LogKernelWrapper) LogKernel(x, y []float64) float64 {
+	return ld.LogKerneler.LogKernelHyper(x, y, ld.Hyper)
 }
 
-func (ld LogDistanceWrapper) Distance(x, y []float64) float64 {
-	return math.Exp(ld.LogDistance(x, y))
+func (ld LogKernelWrapper) Kernel(x, y []float64) float64 {
+	return math.Exp(ld.LogKernel(x, y))
 }
 
-type DistanceCombiner struct {
-	Distances []LogDistancer
+type KernelCombiner struct {
+	Kernels []LogKerneler
 }
 
-func (d DistanceCombiner) LogDistance(x, y []float64) float64 {
+func (d KernelCombiner) LogKernel(x, y []float64) float64 {
 	// TODO(btracey): Use some kind of pool to reduce these allocations.
-	lds := make([]float64, len(d.Distances))
+	lds := make([]float64, len(d.Kernels))
 	for i := range lds {
-		lds[i] = d.Distances[i].LogDistance(x, y)
+		lds[i] = d.Kernels[i].LogKernel(x, y)
 	}
 	return floats.LogSumExp(lds)
 }
 
-func (d DistanceCombiner) Distance(x, y []float64) float64 {
-	return math.Exp(d.LogDistance(x, y))
+func (d KernelCombiner) Kernel(x, y []float64) float64 {
+	return math.Exp(d.LogKernel(x, y))
 }

@@ -6,7 +6,7 @@ import (
 	"gonum.org/v1/gonum/floats"
 )
 
-// SqExpIsoUnit is a kernel function with a distance function of
+// SqExpIsoUnit is a kernel function with a kernel function of
 //  math.Exp(-0.5*||x-y||_2^2/l^2)
 // where l is the bandwidth parameter. SqExpIsoUnit has one hyperparameter,
 // which is always interpreted as the log of the bandwidth.
@@ -18,11 +18,11 @@ func (s SqExpIsoUnit) NumHyper(dim int) int {
 	return 1
 }
 
-func (s SqExpIsoUnit) DistanceHyper(x, y, hyper []float64) float64 {
-	return math.Exp(s.LogDistanceHyper(x, y, hyper))
+func (s SqExpIsoUnit) KernelHyper(x, y, hyper []float64) float64 {
+	return math.Exp(s.LogKernelHyper(x, y, hyper))
 }
 
-func (SqExpIsoUnit) LogDistanceHyper(x, y, hyper []float64) float64 {
+func (SqExpIsoUnit) LogKernelHyper(x, y, hyper []float64) float64 {
 	if len(hyper) != 1 {
 		panic(badNumHyper)
 	}
@@ -44,15 +44,15 @@ func (SqExpIso) NumHyper(dim int) int {
 	return 2
 }
 
-func (s SqExpIso) DistanceHyper(x, y, hyper []float64) float64 {
-	return s.LogDistanceHyper(x, y, hyper)
+func (s SqExpIso) KernelHyper(x, y, hyper []float64) float64 {
+	return s.LogKernelHyper(x, y, hyper)
 }
 
-func (SqExpIso) LogDistanceHyper(x, y, hyper []float64) float64 {
+func (SqExpIso) LogKernelHyper(x, y, hyper []float64) float64 {
 	if len(hyper) != 2 {
 		panic(badNumHyper)
 	}
 	logs := hyper[1]
-	ls := SqExpIsoUnit{}.LogDistanceHyper(x, y, hyper[0:1:1])
+	ls := SqExpIsoUnit{}.LogKernelHyper(x, y, hyper[0:1:1])
 	return 2*logs + ls
 }
